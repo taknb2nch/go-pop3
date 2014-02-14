@@ -37,6 +37,10 @@ type Reader struct {
 	R *textproto.Reader
 }
 
+func NewReader(r *bufio.Reader) *Reader {
+	return &Reader{R: textproto.NewReader(r)}
+}
+
 func (r *Reader) ReadLine() (string, error) {
 	return r.R.ReadLine()
 	// for debug
@@ -106,6 +110,10 @@ var crnl = []byte{'\r', '\n'}
 
 type Writer struct {
 	W *bufio.Writer
+}
+
+func NewWriter(w *bufio.Writer) *Writer {
+	return &Writer{W: w}
 }
 
 func (w *Writer) WriteLine(format string, args ...interface{}) error {
