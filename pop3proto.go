@@ -73,7 +73,7 @@ func (r *Reader) ReadToPeriod() (string, error) {
 	lines, err := r.ReadLines()
 
 	if err != nil {
-		return "", nil
+		return "", err
 	}
 
 	return strings.Join(lines, "\r\n"), nil
