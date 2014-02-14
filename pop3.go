@@ -113,7 +113,7 @@ func (c *Client) ListAll() ([]MessageInfo, error) {
 	})
 
 	if err != nil {
-		return nil, ResponseError(fmt.Sprintf("LISTコマンドのレスポンスが不正です。: %s", err.Error()))
+		return nil, err
 	}
 
 	return list, nil
@@ -144,7 +144,7 @@ func (c *Client) Uidl(number int) (int, string, error) {
 	val, uid, err = c.convertNumberAndUid(msg)
 
 	if err != nil {
-		return 0, "", ResponseError(fmt.Sprintf("UIDLコマンドのレスポンスが不正です。: %s", err.Error()))
+		return 0, "", err
 	}
 
 	return val, uid, nil
@@ -168,7 +168,7 @@ func (c *Client) UidlAll() ([]MessageInfo, error) {
 	})
 
 	if err != nil {
-		return nil, ResponseError(fmt.Sprintf("UIDLコマンドのレスポンスが不正です。: %s", err.Error()))
+		return nil, err
 	}
 
 	return list, nil
@@ -232,7 +232,7 @@ func (c *Client) cmdStatOrList(name, format string, args ...interface{}) (int, u
 	s := strings.Split(msg, " ")
 
 	if len(s) < 2 {
-		return 0, 0, ResponseError(fmt.Sprintf("%sコマンドのレスポンスが不正です。: %s", name, msg))
+		return 0, 0, ResponseError(fmt.Sprintf("invalid response format: %s", msg))
 	}
 
 	var val int
@@ -241,7 +241,7 @@ func (c *Client) cmdStatOrList(name, format string, args ...interface{}) (int, u
 	val, size, err = c.convertNumberAndSize(msg)
 
 	if err != nil {
-		return 0, 0, ResponseError(fmt.Sprintf("%sコマンドのレスポンスが不正です。: %s", name, err.Error()))
+		return 0, 0, err
 	}
 
 	return val, size, nil
@@ -293,18 +293,18 @@ func (c *Client) convertNumberAndSize(line string) (int, uint64, error) {
 	s := strings.Split(line, " ")
 
 	if len(s) < 2 {
-		return 0, 0, errors.New(fmt.Sprintf("分割後の配列数が2未満です。: %s", line))
+		return 0, 0, errors.New(fmt.Sprintf("the length of the array is less than 2: %s", line))
 	}
 
 	var val int
 	var size uint64
 
 	if val, err = strconv.Atoi(s[0]); err != nil {
-		return 0, 0, errors.New(fmt.Sprintf("配列要素[0]をint型に変換できません。: %s", line))
+		return 0, 0, errors.New(fmt.Sprintf("can not convert element[0] to int type: %s", line))
 	}
 
 	if size, err = strconv.ParseUint(s[1], 10, 64); err != nil {
-		return 0, 0, errors.New(fmt.Sprintf("配列要素[1]をuint64型に変換できません。: %s", line))
+		return 0, 0, errors.New(fmt.Sprintf("can not convert element[1] to uint64 type: %s", line))
 	}
 
 	return val, size, nil
@@ -316,13 +316,13 @@ func (c *Client) convertNumberAndUid(line string) (int, string, error) {
 	s := strings.Split(line, " ")
 
 	if len(s) < 2 {
-		return 0, "", errors.New(fmt.Sprintf("分割後の配列数が2未満です。: %s", line))
+		return 0, "", errors.New(fmt.Sprintf("the length of the array is less than 2: %s", line))
 	}
 
 	var val int
 
 	if val, err = strconv.Atoi(s[0]); err != nil {
-		return 0, "", errors.New(fmt.Sprintf("配列要素[0]をint型に変換できません。: %s", line))
+		return 0, "", errors.New(fmt.Sprintf("can not convert element[0] to int type: %s", line))
 	}
 
 	return val, s[1], nil
