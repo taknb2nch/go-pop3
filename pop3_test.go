@@ -300,3 +300,7 @@ func (f faker) RemoteAddr() net.Addr             { return nil }
 func (f faker) SetDeadline(time.Time) error      { return nil }
 func (f faker) SetReadDeadline(time.Time) error  { return nil }
 func (f faker) SetWriteDeadline(time.Time) error { return nil }
+
+func TestReceiveMail(t *testing.T) {
+	t.Skipf("sorry this test has not implemented.")
+}
