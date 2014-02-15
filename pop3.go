@@ -34,7 +34,7 @@ type Client struct {
 	conn net.Conn
 }
 
-//Dial returns a new Client connected to an POP server at addr.
+// Dial returns a new Client connected to an POP server at addr.
 // The addr must include a port number.
 func Dial(addr string) (*Client, error) {
 	conn, err := net.Dial("tcp", addr)
