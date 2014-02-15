@@ -9,6 +9,10 @@ import (
 	"strings"
 )
 
+var (
+	EOF = errors.New("skip the all mail remaining")
+)
+
 // MessageInfo has Number, Size, and Uid fields,
 // and used as a return value of ListAll and UidlAll.
 // When used as the return value of the method ListAll,
@@ -195,6 +199,67 @@ func (c *Client) Rset() error {
 func (c *Client) Quit() error {
 	return c.cmdSimple("QUIT")
 }
+
+// ReceiveMail connects to the server at addr,
+// and authenticates with user and pass,
+// and calling receiveFn for each mail.
+func ReceiveMail(addr, user, pass string, receiveFn ReceiveMailFunc) error {
+	c, err := Dial(addr)
+
+	if err != nil {
+		return err
+	}
+
+	defer func() {
+		c.Quit()
+		c.Close()
+	}()
+
+	if err = c.User(user); err != nil {
+		return err
+	}
+
+	if err = c.Pass(pass); err != nil {
+		return err
+	}
+
+	var mis []MessageInfo
+
+	if mis, err = c.UidlAll(); err != nil {
+		return err
+	}
+
+	for _, mi := range mis {
+		var data string
+
+		data, err = c.Retr(mi.Number)
+
+		del, err := receiveFn(mi.Number, mi.Uid, data, err)
+
+		if err != nil && err != EOF {
+			return err
+		}
+
+		if del {
+			if err = c.Dele(mi.Number); err != nil {
+				return err
+			}
+		}
+
+		if err == EOF {
+			break
+		}
+	}
+
+	return nil
+}
+
+// ReceiveMailFunc is the type of the function called for each mail.
+// Its arguments are mail's number, uid, data, and mail receiving error.
+// if this function returns false value, the mail will be deleted,
+// if its returns EOF, skip the all mail of remaining.
+// (after deleting mail, if necessary)
+type ReceiveMailFunc func(number int, uid, data string, err error) (bool, error)
 
 func (c *Client) cmdSimple(format string, args ...interface{}) error {
 	var err error

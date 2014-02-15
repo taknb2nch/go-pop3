@@ -67,13 +67,13 @@ func TestReadResponse(t *testing.T) {
 
 	r = reader("message\n")
 	s, err = r.ReadResponse()
-	if s != "" || err == nil || err.Error() != "レスポンスのフォーマットが不正です。: message" {
+	if s != "" || err == nil || err.Error() != "invalid response format: message" {
 		t.Fatalf("%v, %v", s, err)
 	}
 
 	r = reader("* message\n")
 	s, err = r.ReadResponse()
-	if s != "" || err == nil || err.Error() != "レスポンスの内容が不明です。: * message" {
+	if s != "" || err == nil || err.Error() != "unknown response: * message" {
 		t.Fatalf("%v, %v", s, err)
 	}
 }
