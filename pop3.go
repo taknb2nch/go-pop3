@@ -9,27 +9,29 @@ import (
 	"strings"
 )
 
-// MessageInfoはメッセージ番号、メッセージサイズ、およびユニークIDを持つ型です。
-// ListAllまたはUidlAllメソッドの戻り値として使用されます。
-// ListAllメソッドにて取得した場合は、メッセージ番号とメッセージサイズ、
-// UidlAllメソッドにて取得した場合は、メッセージ番号とユニークIDのみに値が入っています。
+// MessageInfo has Number, Size, and Uid fields,
+// and used as a return value of ListAll and UidlAll.
+// When used as the return value of the method ListAll,
+// MessageInfo contain only the Number and Size values.
+// When used as the return value of the method UidlAll,
+// MessageInfo contain only the Number and Uid values.
 type MessageInfo struct {
 	Number int
 	Size   uint64
 	Uid    string
 }
 
-// ClientはPOPサーバーへの接続を表すクライアントです。
+// A Client represents a client connection to an POP server.
 type Client struct {
-	// TextはClientによって使用されるmail2.Connです。
+	// Text is the pop3.Conn used by the Client.
 	Text *Conn
 	// keep a reference to the connection so it can be used to create a TLS
 	// connection later
 	conn net.Conn
 }
 
-// Dialは指定されたアドレスのPOPサーバーに接続された新規Clientを返します。
-// アドレスはポート番号を含まなくてはなりません。
+//Dial returns a new Client connected to an POP server at addr.
+// The addr must include a port number.
 func Dial(addr string) (*Client, error) {
 	conn, err := net.Dial("tcp", addr)
 
@@ -40,7 +42,7 @@ func Dial(addr string) (*Client, error) {
 	return NewClient(conn)
 }
 
-// NewClient既存のコネクションを使用した新規Clientを返します。
+// NewClient returns a new Client using an existing connection.
 func NewClient(conn net.Conn) (*Client, error) {
 	text := NewConn(conn)
 
@@ -53,24 +55,24 @@ func NewClient(conn net.Conn) (*Client, error) {
 	return &Client{Text: text, conn: conn}, nil
 }
 
-// Userは指定されたユーザを使用してサーバーに対してUSERコマンドを発行します。
+// User issues a USER command to the server using the provided user name.
 func (c *Client) User(user string) error {
 	return c.cmdSimple("USER %s", user)
 }
 
-// Passは指定されたパスワードを使用してサーバーに対してPASSコマンドを発行します。
+// Pass issues a PASS command to the server using the provided password.
 func (c *Client) Pass(pass string) error {
 	return c.cmdSimple("PASS %s", pass)
 }
 
-// Statはサーバーに対してSTARコマンドを発行します。
-// サーバーに保存されているメール数、合計メールサイズおよびエラーが返ります。
+// Stat issues a STAT command to the server
+// and returns mail count and total size.
 func (c *Client) Stat() (int, uint64, error) {
 	return c.cmdStatOrList("STAT", "STAT")
 }
 
-// Retrは指定されたメール番号を使用してサーバーに対してRetrコマンドを発行します。
-// サーバーに保存されているメール数、合計メールサイズが返ります。
+// Retr issues a RETR command to the server using the provided mail number
+// and returns mail data.
 func (c *Client) Retr(number int) (string, error) {
 	var err error
 
@@ -89,14 +91,14 @@ func (c *Client) Retr(number int) (string, error) {
 	return c.Text.ReadToPeriod()
 }
 
-// Listは指定されたメール番号を使用してサーバーに対してLISTコマンドを発行します。
-// 指定されたメール番号が存在する場合は、メール番号とサイズが返ります。
+// List issues a LIST command to the server using the provided mail number
+// and returns mail number and size.
 func (c *Client) List(number int) (int, uint64, error) {
 	return c.cmdStatOrList("LIST", "LIST %d", number)
 }
 
-// ListAllはサーバーに対してLISTコマンドを発行します。
-// 存在するメール件数分のMessageInfoが返ります。
+// List issues a LIST command to the server
+// and returns array of MessageInfo.
 func (c *Client) ListAll() ([]MessageInfo, error) {
 	list := make([]MessageInfo, 0)
 
@@ -119,8 +121,8 @@ func (c *Client) ListAll() ([]MessageInfo, error) {
 	return list, nil
 }
 
-// Uidlは指定されたメール番号を使用してサーバーに対してUIDLコマンドを発行します。
-// 指定されたメール番号が存在する場合は、メール番号とユニークIDが返ります。
+// Uidl issues a UIDL command to the server using the provided mail number
+// and returns mail number and unique id.
 func (c *Client) Uidl(number int) (int, string, error) {
 	var err error
 
@@ -150,8 +152,8 @@ func (c *Client) Uidl(number int) (int, string, error) {
 	return val, uid, nil
 }
 
-// UidlAllはサーバーに対してUIDLコマンドを発行します。
-// 存在するメール件数分のMessageInfoが返ります。
+// Uidl issues a UIDL command to the server
+// and returns array of MessageInfo.
 func (c *Client) UidlAll() ([]MessageInfo, error) {
 	list := make([]MessageInfo, 0)
 
@@ -174,22 +176,22 @@ func (c *Client) UidlAll() ([]MessageInfo, error) {
 	return list, nil
 }
 
-// Deleは指定されたメール番号を使用してサーバーに対してDELEコマンドを発行します。
+// Dele issues a DELE command to the server using the provided mail number.
 func (c *Client) Dele(number int) error {
 	return c.cmdSimple("DELE %d", number)
 }
 
-// Noopはサーバーに対してNOOPコマンドを発行します。
+// Noop issues a NOOP command to the server.
 func (c *Client) Noop() error {
 	return c.cmdSimple("NOOP")
 }
 
-// Rsetはサーバーに対してRSETコマンドを発行します。
+// Rset issues a RSET command to the server.
 func (c *Client) Rset() error {
 	return c.cmdSimple("RSET")
 }
 
-// Quitはサーバーに対してQUITコマンドを発行します。
+// Quit issues a QUIT command to the server.
 func (c *Client) Quit() error {
 	return c.cmdSimple("QUIT")
 }
