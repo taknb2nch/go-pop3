@@ -110,3 +110,6 @@ if err = client.Rset(); err != nil {
 	return
 }
 ```
+
+##License
+[MIT License](https://github.com/taknb2nch/go-pop3/blob/master/LICENSE)
