@@ -211,6 +211,10 @@ func ReceiveMail(addr, user, pass string, receiveFn ReceiveMailFunc) error {
 	}
 
 	defer func() {
+		if err != nil && err != EOF {
+			c.Rset()
+		}
+
 		c.Quit()
 		c.Close()
 	}()
