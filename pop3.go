@@ -1,4 +1,4 @@
-// Package pop3 provides simple POP3 Client.
+// Package pop3 provides simple POP3 client.
 package pop3
 
 import (
