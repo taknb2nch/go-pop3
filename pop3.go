@@ -1,4 +1,4 @@
-// Package pop3 implements the Post Office Protocol version 3.
+// Package pop3 provides simple POP3 Client.
 package pop3
 
 import (
