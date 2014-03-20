@@ -110,20 +110,14 @@ func (r *Reader) ReadResponse() (string, error) {
 }
 
 func (r *Reader) parseResponse(line string) (string, error) {
-	var index int
 
-	if index = strings.Index(line, " "); index < 0 {
-		return "", ResponseError(fmt.Sprintf("invalid response format: %s", line))
+	if strings.HasPrefix(line, "+OK"){
+		return strings.TrimSpace(line[3:]), nil
 	}
-
-	switch strings.ToUpper(line[:index]) {
-	case "+OK":
-		return line[index+1:], nil
-	case "-ERR":
-		return "", ResponseError(line[index+1:])
-	default:
-		return "", ResponseError(fmt.Sprintf("unknown response: %s", line))
+	if strings.HasPrefix(line, "+ERR") {
+		return "", ResponseError(strings.TrimSpace(line[4:]))
 	}
+	return "", ResponseError(fmt.Sprintf("invalid response format: %s", line))
 }
 
 var crnl = []byte{'\r', '\n'}
