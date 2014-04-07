@@ -59,21 +59,69 @@ func TestReadResponse(t *testing.T) {
 		t.Fatalf("%v, %v", s, err)
 	}
 
+	r = reader("+OK\n")
+	s, err = r.ReadResponse()
+	if s != "" || err != nil {
+		t.Fatalf("%v, %v", s, err)
+	}
+
+	r = reader("+OK \n")
+	s, err = r.ReadResponse()
+	if s != "" || err != nil {
+		t.Fatalf("%v, %v", s, err)
+	}
+
+	r = reader("+OKAY\n")
+	s, err = r.ReadResponse()
+	if s != "" || err == nil || err.Error() != "unknown response: +OKAY" {
+		t.Fatalf("%v, %v", s, err)
+	}
+
 	r = reader("-ERR message\n")
 	s, err = r.ReadResponse()
 	if s != "" || err == nil || err.Error() != "message" {
 		t.Fatalf("%v, %v", s, err)
 	}
 
+	r = reader("-ERR\n")
+	s, err = r.ReadResponse()
+	if s != "" || err == nil || err.Error() != "" {
+		t.Fatalf("%v, %v", s, err)
+	}
+
+	r = reader("-ERR \n")
+	s, err = r.ReadResponse()
+	if s != "" || err == nil || err.Error() != "" {
+		t.Fatalf("%v, %v", s, err)
+	}
+
+	r = reader("-ERROR\n")
+	s, err = r.ReadResponse()
+	if s != "" || err == nil || err.Error() != "unknown response: -ERROR" {
+		t.Fatalf("%v, %v", s, err)
+	}
+
 	r = reader("message\n")
 	s, err = r.ReadResponse()
-	if s != "" || err == nil || err.Error() != "invalid response format: message" {
+	if s != "" || err == nil || err.Error() != "unknown response: message" {
 		t.Fatalf("%v, %v", s, err)
 	}
 
 	r = reader("* message\n")
 	s, err = r.ReadResponse()
 	if s != "" || err == nil || err.Error() != "unknown response: * message" {
+		t.Fatalf("%v, %v", s, err)
+	}
+
+	r = reader(" message\n")
+	s, err = r.ReadResponse()
+	if s != "" || err == nil || err.Error() != "unknown response:  message" {
+		t.Fatalf("%v, %v", s, err)
+	}
+
+	r = reader("\n")
+	s, err = r.ReadResponse()
+	if s != "" || err == nil || err.Error() != "unknown response: " {
 		t.Fatalf("%v, %v", s, err)
 	}
 }
