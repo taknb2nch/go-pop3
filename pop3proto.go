@@ -110,18 +110,17 @@ func (r *Reader) ReadResponse() (string, error) {
 }
 
 func (r *Reader) parseResponse(line string) (string, error) {
-	var index int
+	s := strings.ToUpper(line)
 
-	if index = strings.Index(line, " "); index < 0 {
-		return "", ResponseError(fmt.Sprintf("invalid response format: %s", line))
-	}
-
-	switch strings.ToUpper(line[:index]) {
-	case "+OK":
-		return line[index+1:], nil
-	case "-ERR":
-		return "", ResponseError(line[index+1:])
-	default:
+	if s == "+OK" {
+		return "", nil
+	} else if strings.HasPrefix(s, "+OK ") {
+		return line[4:], nil
+	} else if s == "-ERR" {
+		return "", ResponseError("")
+	} else if strings.HasPrefix(s, "-ERR ") {
+		return "", ResponseError(line[5:])
+	} else {
 		return "", ResponseError(fmt.Sprintf("unknown response: %s", line))
 	}
 }
