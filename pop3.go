@@ -240,14 +240,16 @@ func ReceiveMail(addr, user, pass string, receiveFn ReceiveMailFunc) error {
 
 		del, err := receiveFn(mi.Number, mi.Uid, data, err)
 
-		if err != nil && err != EOF {
-			return err
-		}
-
 		if del {
-			if err = c.Dele(mi.Number); err != nil {
+			if err := c.Dele(mi.Number); err != nil {
+				fmt.Println("Error deleting email", err)
 				return err
 			}
+		}
+
+		if err != nil && err != EOF {
+			fmt.Println("pop3.go inside err != nil block")
+			return err
 		}
 
 		if err == EOF {
