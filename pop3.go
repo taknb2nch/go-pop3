@@ -260,7 +260,7 @@ func ReceiveMail(addr, user, pass string, receiveFn ReceiveMailFunc) error {
 
 // ReceiveMailFunc is the type of the function called for each mail.
 // Its arguments are mail's number, uid, data, and mail receiving error.
-// if this function returns false value, the mail will be deleted,
+// if this function returns true value, the mail will be deleted,
 // if its returns EOF, skip the all mail of remaining.
 // (after deleting mail, if necessary)
 type ReceiveMailFunc func(number int, uid, data string, err error) (bool, error)
