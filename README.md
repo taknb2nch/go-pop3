@@ -4,6 +4,8 @@ go-pop3
 This is a simple POP3 client package in Go language.
 
 ##Usage
+[![GoDoc](https://godoc.org/github.com/taknb2nch/go-pop3?status.svg)](https://godoc.org/github.com/taknb2nch/go-pop3)
+
 ```go
 if err := pop3.ReceiveMail(address, user, pass,
 	func(number int, uid, data string, err error) (bool, error) {
