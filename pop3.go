@@ -4,9 +4,11 @@ package pop3
 import (
 	"errors"
 	"fmt"
+	"log"
 	"net"
 	"strconv"
 	"strings"
+	"time"
 )
 
 var (
@@ -38,8 +40,10 @@ type Client struct {
 // The addr must include a port number.
 func Dial(addr string) (*Client, error) {
 	conn, err := net.Dial("tcp", addr)
-
+	deadline := time.Now().Add(3 * time.Minute)
+	conn.SetReadDeadline(deadline)
 	if err != nil {
+		log.Println("ERR in Dial. Boooo.")
 		return nil, err
 	}
 
@@ -205,8 +209,9 @@ func (c *Client) Quit() error {
 // and calling receiveFn for each mail.
 func ReceiveMail(addr, user, pass string, receiveFn ReceiveMailFunc) error {
 	c, err := Dial(addr)
-
 	if err != nil {
+		log.Println("Err is not nil!")
+		log.Println(err)
 		return err
 	}
 
@@ -224,12 +229,14 @@ func ReceiveMail(addr, user, pass string, receiveFn ReceiveMailFunc) error {
 	}
 
 	if err = c.Pass(pass); err != nil {
+
 		return err
 	}
 
 	var mis []MessageInfo
 
 	if mis, err = c.UidlAll(); err != nil {
+
 		return err
 	}
 
@@ -248,15 +255,14 @@ func ReceiveMail(addr, user, pass string, receiveFn ReceiveMailFunc) error {
 		}
 
 		if err != nil && err != EOF {
-			fmt.Println("pop3.go inside err != nil block")
 			return err
 		}
 
 		if err == EOF {
+
 			break
 		}
 	}
-
 	return nil
 }
 

@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"fmt"
 	"io"
-	_ "log"
 	"net/textproto"
 	"strings"
 )
