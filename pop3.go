@@ -43,7 +43,6 @@ func Dial(addr string) (*Client, error) {
 	conn, err := tls.Dial("tcp", addr, nil)
 	// deadline := time.Now().Add(3 * time.Minute)
 	// conn.SetReadDeadline(deadline)
-	log.Println("Hi mom")
 	if err != nil {
 		log.Println("ERR in Dial. Boooo.")
 		return nil, err
