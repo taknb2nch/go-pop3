@@ -2,11 +2,14 @@
 package pop3
 
 import (
+	"crypto/tls"
 	"errors"
 	"fmt"
+	"log"
 	"net"
 	"strconv"
 	"strings"
+	// "time"
 )
 
 var (
@@ -37,9 +40,11 @@ type Client struct {
 // Dial returns a new Client connected to an POP server at addr.
 // The addr must include a port number.
 func Dial(addr string) (*Client, error) {
-	conn, err := net.Dial("tcp", addr)
-
+	conn, err := tls.Dial("tcp", addr, nil)
+	// deadline := time.Now().Add(3 * time.Minute)
+	// conn.SetReadDeadline(deadline)
 	if err != nil {
+		log.Println("ERR in Dial. Boooo.")
 		return nil, err
 	}
 
@@ -205,8 +210,9 @@ func (c *Client) Quit() error {
 // and calling receiveFn for each mail.
 func ReceiveMail(addr, user, pass string, receiveFn ReceiveMailFunc) error {
 	c, err := Dial(addr)
-
 	if err != nil {
+		log.Println("Err is not nil!")
+		log.Println(err)
 		return err
 	}
 
@@ -224,12 +230,14 @@ func ReceiveMail(addr, user, pass string, receiveFn ReceiveMailFunc) error {
 	}
 
 	if err = c.Pass(pass); err != nil {
+
 		return err
 	}
 
 	var mis []MessageInfo
 
 	if mis, err = c.UidlAll(); err != nil {
+
 		return err
 	}
 
@@ -240,21 +248,22 @@ func ReceiveMail(addr, user, pass string, receiveFn ReceiveMailFunc) error {
 
 		del, err := receiveFn(mi.Number, mi.Uid, data, err)
 
-		if err != nil && err != EOF {
-			return err
-		}
-
 		if del {
-			if err = c.Dele(mi.Number); err != nil {
+			if err := c.Dele(mi.Number); err != nil {
+				fmt.Println("Error deleting email", err)
 				return err
 			}
 		}
 
+		if err != nil && err != EOF {
+			return err
+		}
+
 		if err == EOF {
+
 			break
 		}
 	}
-
 	return nil
 }
 
